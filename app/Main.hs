@@ -1,6 +1,7 @@
 module Main where
 
 import Lib
+import Parse
 import Data.Char (toUpper)
 import System.Directory (renameFile, getTemporaryDirectory)
 import System.Environment (getArgs)
@@ -19,4 +20,4 @@ import Control.Monad (when)
 --   when (length newContents > 0) $
 --     writeFile "file.txt" newContents
 
-main = sumAdd 6 10 1
+main = main7
