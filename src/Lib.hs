@@ -30,7 +30,10 @@ module Lib
       faceNumberPlus,
       faceRolls,
       faceRollsPlus,
-      main5
+      main5,
+      parseRolls,
+      main6,
+      main7
     ) where
 
 import System.Random
@@ -39,6 +42,96 @@ import System.Environment (getArgs)
 import qualified System.Exit as SE
 import Data.Binary (encodeFile, decodeFile)
 import qualified Data.Foldable as F (fold)
+import qualified Options.Applicative as OA
+
+data Sample = Sample
+  { hello :: String
+  , quiet :: Bool
+  , enthusiasm :: Int }
+
+data Roll = Roll
+  { faces :: Integer
+  , rolls :: Integer
+  , number :: Integer
+  , plus :: Integer }
+
+parseRolls :: OA.Parser Roll
+parseRolls = Roll
+             <$> OA.option OA.auto
+             ( OA.long "faces"
+               <> OA.metavar "INTEGER"
+               <> OA.short 'd'
+               <> OA.help "Number of faces on die"
+               <> OA.showDefault
+               <> OA.value 4 )
+             <*> OA.option OA.auto
+             ( OA.long "rolls"
+               <> OA.help "Number of rolls of that dice"
+               <> OA.short 'r'
+               <> OA.showDefault
+               <> OA.value 1
+               <> OA.metavar "INTEGER" )
+             <*> OA.option OA.auto
+             ( OA.long "number"
+               <> OA.help "Number of times to make the rolls"
+               <> OA.short 'n'
+               <> OA.showDefault
+               <> OA.value 1
+               <> OA.metavar "INTEGER" )
+             <*> OA.option OA.auto
+             ( OA.long "plus"
+               <> OA.short 'p'
+               <> OA.help "Modifier to add to the rolls"
+               <> OA.showDefault
+               <> OA.value 0
+               <> OA.metavar "INTEGER" )
+
+sample :: OA.Parser Sample
+sample = Sample
+         <$> OA.strOption
+         ( OA.long "hello"
+           <> OA.metavar "TARGET"
+           <> OA.help "Target for the greeting" )
+         <*> OA.switch
+         ( OA.long "quiet"
+           <> OA.short 'q'
+           <> OA.help "Whether to be quiet" )
+         <*> OA.option OA.auto
+         ( OA.long "enthusiasm"
+           <> OA.short 'q'
+           <> OA.help "How enthusiastically to greet"
+           <> OA.showDefault
+           <> OA.value 1
+           <> OA.metavar "INT" )
+
+main6 :: IO ()
+main6 = greet =<< OA.execParser opts
+  where
+    opts =
+      OA.info (sample OA.<**> OA.helper)
+      ( OA.fullDesc
+        <> OA.progDesc "Print a greeting for TARGET"
+        <> OA.header "hello - a test for optparse-applicative" )
+
+main7 :: IO ()
+main7 = greet3 =<< OA.execParser opts
+  where
+    opts =
+      OA.info (parseRolls OA.<**> OA.helper)
+      ( OA.fullDesc
+        <> OA.progDesc "Roll some dice"
+        <> OA.header "hello - a test for mario" )
+    
+greet :: Sample -> IO ()
+greet (Sample h False n) = putStrLn $ "Hello, " ++ h ++ replicate n '!'
+greet _ = return ()
+
+greet2 :: Roll -> IO ()
+greet2 (Roll d r n p) = putStrLn $ "You want to roll a " ++ (show r) ++ "d" ++ (show d) ++ " " ++ (show n) ++ " times, adding " ++ (show p) ++ " to each of the individual dice"
+greet2 _ = return ()
+
+greet3 :: Roll -> IO ()
+greet3 (Roll d r n p) = faceNumberRollsPlus d r n p
 
 --main5 = do
 --  (command:args) <- getArgs
@@ -287,6 +380,8 @@ general mi ma number rolls plus = do
   let myList1 = randomRsLists (mi,ma) number rolls x
   let myList2 = goTwoDeep (+ plus) myList1
   let mySumAndList = fmap listAndSum myList2
+  putStrLn $ "You want to roll a " ++ (show number) ++ "d" ++ (show ma) ++ " " ++ (show rolls) ++ " times, adding " ++ (show plus) ++ " to each of the individual dice"
+  putStrLn $ "format: [(sum,[rolls])]"
   print $ mySumAndList
 
 
@@ -309,3 +404,6 @@ faceRolls ma rolls = general 1 ma 1 rolls 0
 
 faceRollsPlus :: Integer -> Integer -> Integer -> IO ()
 faceRollsPlus ma rolls plus = general 1 ma 1 rolls plus
+
+--faceNumberRollsPlus2 :: Roll -> IO ()
+--faceNumberRollsPlus2 (Roll d r n p)

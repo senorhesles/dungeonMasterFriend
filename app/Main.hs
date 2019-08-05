@@ -20,4 +20,4 @@ import Control.Monad (when)
 --   when (length newContents > 0) $
 --     writeFile "file.txt" newContents
 
-main = main7
+main = Lib.main7
